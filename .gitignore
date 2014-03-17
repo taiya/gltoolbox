@@ -11,3 +11,9 @@
 *.lai
 *.la
 *.a
+
+*.class
+
+/.classpath
+/.project
+/.settings/
