@@ -15,6 +15,9 @@ verts = single(M.vertices)';
 normals = single(M.normals)';
 faces = (int32(M.faces)-1)';
 % with normals
-jc.add_mesh(verts(:),faces(:),normals(:));
+% jc.add_mesh(verts(:),faces(:),normals(:));
 % Without normals
-jc.add_mesh(verts(:),faces(:));
+% jc.add_mesh(verts(:),faces(:));
+
+cube = CubeRenderer();
+jc.add(cube);
