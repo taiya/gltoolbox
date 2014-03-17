@@ -44,9 +44,15 @@ public class View3 extends GLCanvas{
         this.addMouseListener(mlist);
         this.addMouseMotionListener(mlist);
     }
-    
+
+    /// Creates a mesh without surface normals
     public void add_mesh(float[] verts, int[] faces){
-    	TriMesh mesh = new TriMesh(verts,faces);
+        add_mesh(verts,faces,null);
+    }
+    
+    /// Creates a mesh with surface normals
+    public void add_mesh(float[] verts, int[] faces, float[] normals){
+    	TriMesh mesh = new TriMesh(verts,faces,normals);
     	rend.add_render_object(mesh);
     }
     
@@ -60,21 +66,16 @@ public class View3 extends GLCanvas{
     	public void init(GL gl);
     	public void draw(GL gl);
     }
-    
-    public static float[] test(){
-    	float[] ret = new float[2];
-    	ret[0] = 1;
-    	ret[1] = 2;
-    	return ret;
-    }
-    
+       
     public class TriMesh implements RenderObjectIFace{
     	private FloatBuffer vertices = null;
+    	private FloatBuffer normals = null;
     	private IntBuffer faces = null;
         private int nfaces = 0;
-                
+        private boolean hasnormals = false;
+        
         /// @todo Improve using IntBuffer.wrap()
-    	TriMesh(float[] verts, int[] faces){       
+    	TriMesh(float[] verts, int[] faces, float[] normals){       
             // System.out.printf("TriMesh::TriMesh()\n");
 
             
@@ -89,24 +90,34 @@ public class View3 extends GLCanvas{
             this.faces.put(faces);
             this.faces.rewind();
             
-            /// Test input ordering
+            if(normals != null){
+                this.normals = BufferUtil.newFloatBuffer(normals.length);
+                this.normals.put(normals);
+                this.normals.rewind();
+                this.hasnormals = true;
+            }
+            
+            /// Test input data
             // for(int i=0; i<faces.length; i+=3)
             //    System.out.printf("i=" + i + " [" + faces[i] + " " + faces[i+1] + " " + faces[i+2] + "]\n"); 
         }
     	
     	public void init(GL gl){}
-    	public void draw(GL gl){
-            System.out.printf("TriMesh::draw()\n");
+        
+    	/// @todo java only has INT, could the glDrawElements call generate problems?
+        public void draw(GL gl){
+            // System.out.printf("TriMesh::draw()\n");
      		if(vertices==null) return;
-
+            
             gl.glColor3f(1.0f,0.0f,0.0f);
             gl.glEnable(GL.GL_LIGHTING);
             gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
             gl.glVertexPointer(3, GL.GL_FLOAT, 0, vertices);
-            /// @todo java only has INT, could the call below generate problems?
+            if(hasnormals) gl.glEnableClientState(GL.GL_NORMAL_ARRAY);
+            if(hasnormals) gl.glNormalPointer(GL.GL_FLOAT, 0, normals);
             if(nfaces>0) gl.glDrawElements(GL.GL_TRIANGLES, nfaces, GL.GL_UNSIGNED_INT, faces);
             gl.glDisableClientState(GL.GL_VERTEX_ARRAY);
-            
+            if(hasnormals) gl.glDisableClientState(GL.GL_NORMAL_ARRAY);
     	}
     } 
 
@@ -168,6 +179,10 @@ public class View3 extends GLCanvas{
         private Matrix4f ThisRot = new Matrix4f();
         private ArcBall arcBall = new ArcBall(640.0f, 480.0f);
         
+        float[] light0_pos = { 0, 0, 100, 1 };          // light position
+        float[] light0_amb = { 0.2f, 0.2f, 0.2f, 1f };  // low ambient light
+        float[] light0_dif = { 1f, 1f, 1f, 1f };        // diffuse colour
+        
 
         // PROBLEMS :(
         // private GLAutoDrawable drawable = null; ///< WARNING: why do I have to store it?
@@ -176,17 +191,25 @@ public class View3 extends GLCanvas{
             System.out.printf("View3::displayChanged()\n");
         }
         public void reshape(GLAutoDrawable drawable, int x,int y, int width, int height){
-            GL gl = drawable.getGL();
-            arcBall.setBounds((float) width, (float) height);
+            final double aspect_ratio = 3.0/2.0;
+                        
+            // int new_height = (int) Math.ceil( width / aspect_ratio );
+            // if (new_height <= 0) // avoid a divide by zero error!
+            //  new_height = 1;
             
-            if (height <= 0) // avoid a divide by zero error!
-                height = 1;
-            // final float h = (float) width / (float) height;
+            GL gl = drawable.getGL();
+            
+            /// Frustum [-1:1] mapped to full window  
             gl.glViewport(0, 0, width, height);
+            
+            /// Setup the projection matrix
             gl.glMatrixMode(GL.GL_PROJECTION);
             gl.glLoadIdentity();
-            gl.glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0); /// view
+            gl.glOrtho(-1.0*aspect_ratio, 1.0*aspect_ratio, -1.0, 1.0, -1.0, 1.0);
             // glu.gluPerspective(45.0f, h, 1.0, 20.0);
+            
+            /// Setup the arcball
+            arcBall.setBounds(width, height);
         }
 
         void get(Matrix4f mat, float[] dest) {
@@ -240,6 +263,13 @@ public class View3 extends GLCanvas{
             gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f); ///< Background
             gl.glColor3f(1.0f, 0.0f, 0.0f); ///< foreground
             gl.glEnable(GL.GL_DEPTH_TEST);
+            
+            /// Lighting
+            gl.glEnable(GL.GL_LIGHTING);
+            gl.glEnable(GL.GL_LIGHT0);
+            gl.glLightfv(GL.GL_LIGHT0, GL.GL_POSITION,light0_pos, 0);
+            gl.glLightfv(GL.GL_LIGHT0, GL.GL_AMBIENT, light0_amb, 0);
+            gl.glLightfv(GL.GL_LIGHT0, GL.GL_DIFFUSE, light0_dif, 0);
         }
         
         void startDrag( Point MousePt ){
