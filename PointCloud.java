@@ -75,7 +75,7 @@ public class PointCloud extends ObjectRenderer {
 	}
 	
 	/** changes point side and refreses GL context */
-	void setPointSize(float size){
+	public void setPointSize(float size){
 		this.pointsize = size;
 		display();
 	}
