@@ -1,4 +1,0 @@
-GraphicsToolbox
-===============
-
-Matlab Graphics Toolbox

@@ -13,8 +13,12 @@ public class PointCloud extends ObjectRenderer {
 	
 	protected FloatBuffer normals = null;
 	protected boolean 	  has_normals = false;
-	
-	public PointCloud(float[] vpoints, float[] vnormals, float[] vcolors) {
+
+    public PointCloud(float[] vpoints, float[] vcolors) {
+    	this(vpoints, vcolors, null);
+    }
+
+	public PointCloud(float[] vpoints, float[] vcolors, float[] vnormals) {
 		// TODO why FloatBuffer.wrap(verts) does not work?
 		this.vertices = BufferUtil.newFloatBuffer(vpoints.length);
 		this.vertices.put(vpoints);

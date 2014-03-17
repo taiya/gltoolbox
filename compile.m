@@ -4,7 +4,7 @@ jPath = fullfile(matlabroot,'java','jarext');
 cp = [fullfile(jPath,'jogl.jar') pathsep fullfile(jPath,'gluegen-rt.jar') pathsep pwd()];
 
 srcs = [];
-append_src('View3.java');
+append_src('OpenGLCanvas.java');
 append_src('Renderer.java');
 append_src('TrackballRenderer.java');
 append_src('ObjectRenderer.java');
