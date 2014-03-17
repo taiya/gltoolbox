@@ -47,12 +47,9 @@ public class View3 extends GLCanvas{
     
     public void add_mesh(float[] verts, int[] faces){
     	TriMesh mesh = new TriMesh(verts,faces);
-    	GL gl = this.getGL();
-    	mesh.init(gl);    	
     	rend.add_render_object(mesh);
     }
     
-	
 	public static void main(String[] args) {
 		System.out.printf("HELLO");
 		View3 view = new View3();
@@ -74,57 +71,42 @@ public class View3 extends GLCanvas{
     public class TriMesh implements RenderObjectIFace{
     	private FloatBuffer vertices = null;
     	private IntBuffer faces = null;
-        private int num_triangles = 0;
-        
-        /// DEBUG
-        private final float fixvertices[] = {
-           -1.0f, -1.0f, 0.0f,
-           1.0f, -1.0f, 0.0f,
-           0.0f,  1.0f, 0.0f,};
-        
+        private int nfaces = 0;
+                
+        /// @todo Improve using IntBuffer.wrap()
     	TriMesh(float[] verts, int[] faces){       
-            System.out.printf("TriMesh::TriMesh()\n");
-                		
-            // this.num_triangles = faces.length;
-    		// this.vertices = BufferUtil.newFloatBuffer(verts.length);
-    		// this.faces = BufferUtil.newIntBuffer(faces.length);
-    		// this.vertices.put(verts);
-    		// this.faces.put(faces);
+            // System.out.printf("TriMesh::TriMesh()\n");
 
-            /// HACK
-            this.vertices = BufferUtil.newFloatBuffer(9);
-            this.vertices.put(fixvertices);
+            
+            /// Setup vertex buffer
+            this.vertices = BufferUtil.newFloatBuffer(verts.length);
+            this.vertices.put(verts);
             this.vertices.rewind();
+            
+            /// Setup face buffer
+            this.nfaces = faces.length;
+            this.faces = BufferUtil.newIntBuffer(faces.length);
+            this.faces.put(faces);
+            this.faces.rewind();
+            
+            /// Test input ordering
+            // for(int i=0; i<faces.length; i+=3)
+            //    System.out.printf("i=" + i + " [" + faces[i] + " " + faces[i+1] + " " + faces[i+2] + "]\n"); 
         }
     	
-    	public void init(GL gl){
-            if(vertices==null) return;
-    	}
+    	public void init(GL gl){}
     	public void draw(GL gl){
             System.out.printf("TriMesh::draw()\n");
      		if(vertices==null) return;
-            // if(num_triangles==0) return;
 
-            if(false){
-                gl.glBegin(GL.GL_TRIANGLES);           	
-                    gl.glColor3f(1.0f, 0.0f, 0.0f);			
-                    gl.glVertex3f(-1.0f, -1.0f, 0.0f);		
-                    gl.glVertex3f(1.0f, -1.0f, 0.0f);		
-                    gl.glVertex3f(0.0f, 1.0f, 0.0f);
-                gl.glEnd();
-            } else {
-                gl.glColor3f(1.0f,0.0f,0.0f);
-                gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
-                gl.glVertexPointer(3, GL.GL_FLOAT, 0, vertices);
-                // gl.glDrawArrays(GL.GL_TRIANGLES, 0, 3);         	
-                gl.glDrawArrays(GL.GL_TRIANGLES, 0, 3);         	
-                gl.glDisableClientState(GL.GL_VERTEX_ARRAY);
-            }
+            gl.glColor3f(1.0f,0.0f,0.0f);
+            gl.glEnable(GL.GL_LIGHTING);
+            gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
+            gl.glVertexPointer(3, GL.GL_FLOAT, 0, vertices);
+            /// @todo java only has INT, could the call below generate problems?
+            if(nfaces>0) gl.glDrawElements(GL.GL_TRIANGLES, nfaces, GL.GL_UNSIGNED_INT, faces);
+            gl.glDisableClientState(GL.GL_VERTEX_ARRAY);
             
-            // gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
-            // gl.glVertexPointer(3, GL.GL_FLOAT, 0, vertices);
-         	// gl.glDrawElements(GL.GL_TRIANGLES, 3*num_triangles, GL.GL_UNSIGNED_INT, faces);
-            // gl.glDisableClientState(GL.GL_VERTEX_ARRAY);
     	}
     } 
 
@@ -227,16 +209,18 @@ public class View3 extends GLCanvas{
         }
         
         public void display(GLAutoDrawable drawable){
-            System.out.printf("View3::display()\n");
+            // System.out.printf("View3::display()\n");
             GL gl = drawable.getGL();
             gl.glMatrixMode(GL.GL_MODELVIEW);
             gl.glLoadIdentity();
             
             gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+            
+            // Initial rotation/scale
             // gl.glScalef(.1f,.1f,.1f);
             // gl.glRotatef(30,1,1,1);
             
-            // Can this be avoided?
+            /// @todo Can this be avoided?
             float mbuffer[] = new float[16];
             get(ThisRot,mbuffer);
            
