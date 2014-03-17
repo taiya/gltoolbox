@@ -19,5 +19,10 @@ faces = (int32(M.faces)-1)';
 % Without normals
 % jc.add_mesh(verts(:),faces(:));
 
-cube = CubeRenderer();
-jc.add(cube);
+% jc.add(CubeRenderer());
+
+
+npoints = 100000;
+vcolors = single(randn(npoints,3))';
+vpoints = single(randn(npoints,3))';
+jc.scatter(vpoints(:), vcolors(:));

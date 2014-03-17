@@ -1,11 +1,17 @@
 import javax.media.opengl.GL;
+import javax.media.opengl.GLCanvas;
 
-/// Shaders
-//import java.io.BufferedReader; 
-//import java.io.FileReader;
-//import javax.media.opengl.GLContext;
+public abstract class ObjectRenderer {
+	/** Call this method when you need to update the GL context, for example after you have changed 
+	 *  a renderer setting */
+	public void display(){ if(_canvas!=null) _canvas.display(); }
+	
+	/** The context that renders this objects (initialized when object added to Renderer */
+	protected GLCanvas _canvas = null;
 
-public interface ObjectRenderer{
-	public void init(GL gl);
-	public void draw(GL gl);
+	/** By default objects are red (change as needed) */
+	protected double[] color = { 1, 0, 0 };
+
+	/** Override this function and draw the object */
+	public void draw(GL gl){}
 }

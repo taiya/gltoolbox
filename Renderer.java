@@ -15,7 +15,7 @@ public abstract class Renderer extends MouseInputAdapter implements GLEventListe
 	}
 
 	/// Reference to GLCanvas we are rendering
-    protected GLCanvas canvas = null;
+	protected GLCanvas canvas = null;
 	// Container of objects to be drawn
 	protected Vector<ObjectRenderer> objects = new Vector<ObjectRenderer>();
 	// Light position
@@ -31,7 +31,7 @@ public abstract class Renderer extends MouseInputAdapter implements GLEventListe
 	// @internal this is because glMultMatrixf() needs a float[16]
 	// the conversion is done by get_model_matrix()
 	private float[] model_matrix_array = new float[16];
-	
+
 	// / @todo can this
 	void cache_model_matrix() {
 		model_matrix_array[0] = model_matrix.m00;
@@ -110,15 +110,20 @@ public abstract class Renderer extends MouseInputAdapter implements GLEventListe
 	}
 
 	public void add_render_object(ObjectRenderer obj) {
+		/// Add the object to the render queue
 		objects.add(obj);
+		/// Save a pointer to context in the canvas
+		obj._canvas = canvas;
+		/// Demand a refresh of the GL display
+		canvas.display();
 	}
 
 	public void displayChanged(GLAutoDrawable drawable, boolean a, boolean b) {
-		throw new RuntimeException();
+		throw new RuntimeException("displayChanged() not implemented");
 	}
-	
+
 	/// Dragging the mouse refreshes the OpenGL canvas
-	public void mouseDragged(MouseEvent mouseEvent) { 
-        canvas.display();
+	public void mouseDragged(MouseEvent mouseEvent) {
+		canvas.display();
 	}
 }
