@@ -1,6 +1,8 @@
 import java.awt.Point;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 
+import javax.media.opengl.GL;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCanvas;
 import javax.vecmath.Matrix4f;
@@ -11,42 +13,90 @@ import javax.vecmath.Vector3f;
 /// Extends the simple renderer with a Trackball controller
 public class ArcballRenderer extends SimpleRenderer {
 	private Matrix4f LastRot = new Matrix4f();
-	private ArcBall arcBall = null;
-	
+	private ArcBallHelper arcBall = null;
+	private Arcball arcball_geo = new Arcball();
+		
 	public ArcballRenderer(GLCanvas canvas) {
 		super(canvas);
 		LastRot.setIdentity();
-		arcBall = new ArcBall(canvas.getWidth(), canvas.getHeight());
+		arcBall = new ArcBallHelper(canvas.getWidth(), canvas.getHeight());
 	}
 
-	// / Arcball needs to know about window geometry
+	/**
+	 * 
+	 */
+	@Override 
+	public void display(GLAutoDrawable drawable) {
+		GL gl = drawable.getGL();
+		gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+		gl.glMatrixMode(GL.GL_MODELVIEW);
+		gl.glLoadIdentity();
+
+		// Make unit sphere fit loosely
+		gl.glScaled(.85, .85, .85);
+				
+		// Arcball rotates, but doesn't translate/scale
+		gl.glMultMatrixf(super.getRotation(), 0);
+		arcball_geo.draw(gl);
+		
+		// Models are also scaled translated
+		gl.glScaled(getScale(), getScale(), getScale());
+		gl.glTranslated(getTx(),getTy(),getTz());
+		for (int i = 0; i < objects.size(); i++)
+			objects.elementAt(i).draw(gl);
+		
+		gl.glFlush();
+	}
+	
+	
+	@Override // Arcball needs to know about window geometry
 	public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
 		super.reshape(drawable, x, y, width, height);
 		arcBall.setBounds(width, height);
 	}
 
 	public void mousePressed(MouseEvent mouseEvent) {
-		Point MousePt = mouseEvent.getPoint();
-		LastRot.set(model_matrix);
-		arcBall.click(MousePt);
+		switch (mouseEvent.getButton()) {
+		case MouseEvent.BUTTON1: // Left Mouse
+			Point MousePt = mouseEvent.getPoint();
+			LastRot.set(model_matrix);
+			arcBall.click(MousePt);
+		default:
+			return;
+		}
 	}
 
 	public void mouseDragged(MouseEvent mouseEvent) {
-		// / Update the model matrix
-		Point MousePt = mouseEvent.getPoint();
-		Quat4f ThisQuat = new Quat4f();
-		arcBall.drag(MousePt, ThisQuat);
-		model_matrix.setRotation(ThisQuat);
-		model_matrix.mul(model_matrix, LastRot);
+		switch (mouseEvent.getButton()) {
+		case MouseEvent.BUTTON1: // Left Mouse
+			// Update the model matrix
+			Point MousePt = mouseEvent.getPoint();
+			Quat4f ThisQuat = new Quat4f();
+			arcBall.drag(MousePt, ThisQuat);
+			model_matrix.setRotation(ThisQuat);
+			model_matrix.mul(model_matrix, LastRot);			
+			break;
+		case MouseEvent.BUTTON2: // Middle Mouse
+			System.out.printf("TODO: PANNING\n");
+		default:
+			return;
+		}
+			
+		// Finally refresh the OpenGL window
+		canvas.display();
+	}
 
-		// / Finally refresh the OpenGL window
+	public void mouseWheelMoved(MouseWheelEvent e){
+		/// TODO make the zoom ratio exposed!
+		float scale_move_ratio = .05f;
+		setScale( getScale()*(1 + (scale_move_ratio*e.getWheelRotation()) ));
 		canvas.display();
 	}
 	
 	/** 
 	 * The math to implementing ArcBall functionality
 	 */
-	class ArcBall {
+	class ArcBallHelper {
 	    private static final float Epsilon = 1.0e-5f;
 
 	    Vector3f StVec;          //Saved click vector
@@ -54,7 +104,7 @@ public class ArcballRenderer extends SimpleRenderer {
 	    float adjustWidth;       //Mouse bounds width
 	    float adjustHeight;      //Mouse bounds height
 
-	    public ArcBall(float NewWidth, float NewHeight) {
+	    public ArcBallHelper(float NewWidth, float NewHeight) {
 	        StVec = new Vector3f();
 	        EnVec = new Vector3f();
 	        setBounds(NewWidth, NewHeight);

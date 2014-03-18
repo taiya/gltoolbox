@@ -35,6 +35,7 @@ public class OpenGLCanvas extends GLCanvas {
 		// Mouse Controls
 		this.addMouseListener(rend);
 		this.addMouseMotionListener(rend);
+		this.addMouseWheelListener(rend);
 	}
 
 	/** Fetches the used OpenGL version */
@@ -67,7 +68,6 @@ public class OpenGLCanvas extends GLCanvas {
 		}
 		
 		if(true){
-			view3.add(new Arcball());
 			view3.add(new Cube());
 		}
 	}

@@ -25,13 +25,29 @@ public abstract class SimpleRenderer extends MouseInputAdapter implements GLEven
 	// Diffuse color
 	protected float[] light0_dif = { 1f, 1f, 1f, 1f };
 
-	// Model matrix (of model view projection)
+	/** Model matrix (of model view projection) */
 	protected Matrix4f model_matrix = new Matrix4f();
 	// Array version of model_matrix
 	// @internal this is because glMultMatrixf() needs a float[16]
 	// the conversion is done by get_model_matrix()
 	private float[] model_matrix_array = new float[16];
+	
+	// 
+	private float scale = 1;
+	private float tx = 0;
+	private float ty = 0;
+	private float tz = 0;
+	
+	public float getScale(){ return scale; }
+	public float getTx(){ return tx; }
+	public float getTy(){ return ty; }
+	public float getTz(){ return tz; }
 
+	public void setScale(float scale){ this.scale = scale; }
+	public void setTx(float tx) { this.tx = tx; }
+	public void setTy(float ty) { this.ty = ty; }
+	public void setTz(float tz) { this.tz = tz; }
+	
 	// / @todo can this
 	void cache_model_matrix() {
 		model_matrix_array[0] = model_matrix.m00;
@@ -51,6 +67,11 @@ public abstract class SimpleRenderer extends MouseInputAdapter implements GLEven
 		model_matrix_array[14] = model_matrix.m23;
 		model_matrix_array[15] = model_matrix.m33;
 	}
+	
+	public float[] getRotation(){
+		cache_model_matrix();
+		return model_matrix_array;
+	}
 
 	// Initializes the OpenGL context (colors, lighting, etc)
 	public void init(GLAutoDrawable drawable) {
@@ -61,12 +82,15 @@ public abstract class SimpleRenderer extends MouseInputAdapter implements GLEven
 		gl.glColor3f(1.0f, 0.0f, 0.0f); // /< foreground
 		gl.glEnable(GL.GL_DEPTH_TEST);
 
-		// / Lighting
+		// Simple lighting
 		gl.glEnable(GL.GL_LIGHTING);
 		gl.glEnable(GL.GL_LIGHT0);
 		gl.glLightfv(GL.GL_LIGHT0, GL.GL_POSITION, light0_pos, 0);
 		gl.glLightfv(GL.GL_LIGHT0, GL.GL_AMBIENT, light0_amb, 0);
 		gl.glLightfv(GL.GL_LIGHT0, GL.GL_DIFFUSE, light0_dif, 0);
+		
+		// Back faces receive light
+		gl.glLightModeli(GL.GL_LIGHT_MODEL_TWO_SIDE, GL.GL_TRUE);
 	}
 
 	// Manages changes in viewport
@@ -83,28 +107,27 @@ public abstract class SimpleRenderer extends MouseInputAdapter implements GLEven
 		// / Setup the projection matrix
 		gl.glMatrixMode(GL.GL_PROJECTION);
 		gl.glLoadIdentity();
-		gl.glOrtho(-1.0 * aspect_ratio, 1.0 * aspect_ratio, -1.0, 1.0, -1.0, 1.0);
+		
+		float zmin = -10;
+		float zmax = +10;
+		gl.glOrtho(-1.0 * aspect_ratio, 1.0 * aspect_ratio, -1.0, 1.0, zmin, zmax);
 
 		// @todo:
 		// glu.gluPerspective(45.0f, h, 1.0, 20.0);
 	}
-
+	
 	// Display
 	public void display(GLAutoDrawable drawable) {
 		// System.out.printf("View3::display()\n");
 		GL gl = drawable.getGL();
+		gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 		gl.glMatrixMode(GL.GL_MODELVIEW);
 		gl.glLoadIdentity();
 
-		gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-
-		// / @todo Can this be avoided?
-		cache_model_matrix();
-
 		gl.glPushMatrix();
-		gl.glMultMatrixf(model_matrix_array, 0);
-		for (int i = 0; i < objects.size(); i++)
-			objects.elementAt(i).draw(gl);
+			gl.glMultMatrixf(getRotation(), 0);
+			for (int i = 0; i < objects.size(); i++)
+				objects.elementAt(i).draw(gl);
 		gl.glPopMatrix();
 		gl.glFlush();
 	}
