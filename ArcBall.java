@@ -1,30 +1,51 @@
 import javax.media.opengl.GL;
 
+/** Renders an arcball a-la MeshLab */
 public class Arcball extends Object {
-	double alpha = .5;
-	double[] xy_color = {1.0,0.0,0.0,alpha};
-	double[] yz_color = {0.0,1.0,0.0,alpha};
-	double[] xz_color = {0.0,0.0,1.0,alpha};
+	float alpha = 1.0f;
+	float[] diffuse  = {.5f, .5f, .5f};
+	float[] xy_color = {1.0f,0.0f,0.0f,alpha};
+	float[] yz_color = {0.0f,1.0f,0.0f,alpha};
+	float[] xz_color = {0.0f,0.0f,1.0f,alpha};
+	
+	public void xy_material(GL gl){
+		gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_DIFFUSE, diffuse, 0);
+		gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT, xy_color, 0);		
+	}
+	public void yz_material(GL gl){
+		gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_DIFFUSE, diffuse, 0);
+		gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT, yz_color, 0);		
+	}
+	public void xz_material(GL gl){
+		gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_DIFFUSE, diffuse, 0);
+		gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT, xz_color, 0);		
+	}
 	
 	public void draw(GL gl){
-		// gl.glEnable(GL.GL_LINE_SMOOTH);
-		gl.glDisable(GL.GL_LIGHTING);
-
-		// X-Y circle
-		gl.glColor4dv(xy_color,0);
+		/// Don't show lines as segments
+		gl.glEnable(GL.GL_LINE_SMOOTH);
+		
+		/// Use lighting (helps differentiate front/back circles)
+		gl.glEnable(GL.GL_LIGHTING);
+		
+		/// TODO alpha blending
+		// gl.glDisable(GL.GL_BLEND);
+		// gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
+				
 		gl.glPushMatrix();
+			xy_material(gl);
 			draw_trackball_circle(gl);
 		gl.glPopMatrix();
 		
-		// Y-Z circle
-		gl.glColor4dv(yz_color,0);
 		gl.glPushMatrix();
+			yz_material(gl);
 			gl.glRotated(90, 0, 1, 0);
 			draw_trackball_circle(gl);
 		gl.glPopMatrix();
 		
-		gl.glColor4dv(xz_color,0);
+		gl.glColor4fv(xz_color,0);
 		gl.glPushMatrix();
+			xz_material(gl);
 			gl.glRotated(90, 1, 0, 0);
 			draw_trackball_circle(gl);
 		gl.glPopMatrix();
