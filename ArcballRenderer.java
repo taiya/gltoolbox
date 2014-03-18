@@ -1,11 +1,13 @@
 import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.awt.geom.Point2D;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCanvas;
 import javax.vecmath.Matrix4f;
+import javax.vecmath.Point3d;
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector2f;
 import javax.vecmath.Vector3f;
@@ -15,13 +17,27 @@ public class ArcballRenderer extends SimpleRenderer {
 	private Matrix4f LastRot = new Matrix4f();
 	private ArcBallHelper arcBall = null;
 	private Arcball arcball_geo = new Arcball();
-		
+	/** Controls zoom speed */
+	float scale_move_ratio = .05f; 	/// TODO make the zoom ratio exposed!
+	/** Controls pan speed */
+	float pan_move_ratio = 1;
+	
 	public ArcballRenderer(GLCanvas canvas) {
 		super(canvas);
 		LastRot.setIdentity();
 		arcBall = new ArcBallHelper(canvas.getWidth(), canvas.getHeight());
+		adjust_pan_speed(canvas.getWidth(), canvas.getHeight());
 	}
 
+	
+	/** Make sure panning speed is ~constant 
+	 * TODO use it*/
+	private void adjust_pan_speed(int width, int height){
+		/// Pan speed adjusted normalized w.r.t. window size
+		pan_move_ratio = 1.0f / ((float) canvas.getWidth());		
+		// System.out.printf("pan_move_ratio: %f\n", pan_move_ratio);
+	}
+	
 	/**
 	 * 
 	 */
@@ -53,8 +69,10 @@ public class ArcballRenderer extends SimpleRenderer {
 	public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
 		super.reshape(drawable, x, y, width, height);
 		arcBall.setBounds(width, height);
+		adjust_pan_speed(width,height);
 	}
-
+	
+	@Override
 	public void mousePressed(MouseEvent mouseEvent) {
 		switch (mouseEvent.getButton()) {
 		case MouseEvent.BUTTON1: // Left Mouse
@@ -66,6 +84,7 @@ public class ArcballRenderer extends SimpleRenderer {
 		}
 	}
 
+	@Override
 	public void mouseDragged(MouseEvent mouseEvent) {
 		switch (mouseEvent.getButton()) {
 		case MouseEvent.BUTTON1: // Left Mouse
@@ -76,8 +95,9 @@ public class ArcballRenderer extends SimpleRenderer {
 			model_matrix.setRotation(ThisQuat);
 			model_matrix.mul(model_matrix, LastRot);			
 			break;
-		case MouseEvent.BUTTON2: // Middle Mouse
-			System.out.printf("TODO: PANNING\n");
+		case MouseEvent.BUTTON2: // Middle Mouse		
+			System.out.printf("TODO: PANNING \n");
+			break;
 		default:
 			return;
 		}
@@ -86,9 +106,15 @@ public class ArcballRenderer extends SimpleRenderer {
 		canvas.display();
 	}
 
+	@Override
+	public void mouseClicked(MouseEvent event) {
+		if (event.getClickCount() == 2) {
+			System.out.println("double clicked");
+		}
+	}
+	
+	@Override
 	public void mouseWheelMoved(MouseWheelEvent e){
-		/// TODO make the zoom ratio exposed!
-		float scale_move_ratio = .05f;
 		setScale( getScale()*(1 + (scale_move_ratio*e.getWheelRotation()) ));
 		canvas.display();
 	}
@@ -151,7 +177,6 @@ public class ArcballRenderer extends SimpleRenderer {
 	    //Mouse down
 	    public void click(Point NewPt) {
 	        mapToSphere(NewPt, this.StVec);
-
 	    }
 
 	    //Mouse drag, calculate rotation
