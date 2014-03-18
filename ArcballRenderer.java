@@ -1,13 +1,13 @@
 import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
-import java.awt.geom.Point2D;
+import java.nio.FloatBuffer;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCanvas;
+import javax.media.opengl.glu.GLU;
 import javax.vecmath.Matrix4f;
-import javax.vecmath.Point3d;
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector2f;
 import javax.vecmath.Vector3f;
@@ -85,11 +85,11 @@ public class ArcballRenderer extends SimpleRenderer {
 	}
 
 	@Override
-	public void mouseDragged(MouseEvent mouseEvent) {
-		switch (mouseEvent.getButton()) {
+	public void mouseDragged(MouseEvent event) {
+		switch (event.getButton()) {
 		case MouseEvent.BUTTON1: // Left Mouse
 			// Update the model matrix
-			Point MousePt = mouseEvent.getPoint();
+			Point MousePt = event.getPoint();
 			Quat4f ThisQuat = new Quat4f();
 			arcBall.drag(MousePt, ThisQuat);
 			model_matrix.setRotation(ThisQuat);
@@ -108,8 +108,48 @@ public class ArcballRenderer extends SimpleRenderer {
 
 	@Override
 	public void mouseClicked(MouseEvent event) {
+		Point p = event.getPoint();
 		if (event.getClickCount() == 2) {
 			System.out.println("double clicked");
+			GL gl = canvas.getGL();
+			
+			// FloatBuffer z = FloatBuffer.allocate(1);
+			// gl.glReadBuffer(GL.GL_FRONT);
+			// gl.glReadPixels( p.x, p.y, 1, 1, GL.GL_DEPTH_COMPONENT, GL.GL_FLOAT, z );
+			// z.rewind();
+			
+			
+			// http://www.java-tips.org/other-api-tips/jogl/how-to-use-gluunproject-in-jogl.html
+			int viewport[] = new int[4];
+			double modelview[] = new double[16];
+			double projection[] = new double[16];
+			double[] wcoord = new double[4];
+			gl.glGetIntegerv(GL.GL_VIEWPORT, viewport, 0);  
+	        gl.glGetDoublev(GL.GL_MODELVIEW_MATRIX, modelview, 0);  
+	        gl.glGetDoublev(GL.GL_PROJECTION_MATRIX, projection, 0); 
+			float x = p.x;
+			float y = viewport[3] - (int) p.y - 1;
+			float z = 0; // TODO
+			GLU glu = new GLU();
+			boolean success = glu.gluUnProject((double) x, (double)  y, z, modelview, 0, projection, 0, viewport, 0, wcoord, 0);
+	        System.out.printf("Success? %b\n", success);
+	        System.out.println("Coordinates at cursor are (" + x + ", " + y);
+			  glu.gluUnProject((double) x, (double) y, 0.0, //
+					  modelview, 0,
+					  projection, 0, 
+			      viewport, 0, 
+			      wcoord, 0);
+			  System.out.println("World coords at z=0.0 are ( " //
+			                 + wcoord[0] + ", " + wcoord[1] + ", " + wcoord[2]
+			                 + ")");
+			  glu.gluUnProject((double) x, (double) y, 1.0, //
+					  modelview, 0,
+					  projection, 0,
+			      viewport, 0, 
+			      wcoord, 0);
+			  System.out.println("World coords at z=1.0 are (" //
+			                 + wcoord[0] + ", " + wcoord[1] + ", " + wcoord[2]
+			                 + ")");
 		}
 	}
 	
