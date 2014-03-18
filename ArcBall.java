@@ -82,7 +82,8 @@ public class Arcball extends Object {
 	
 	public static void draw_square(GL gl) {
 		gl.glBegin(GL.GL_LINE_LOOP);
-			gl.glNormal3f(0.0f,0.0f,1.0f);
+			/// TODO why [0,0,1] doesn't work properly?
+			gl.glNormal3f(0.0f,0.0f,0.0f);
 			gl.glVertex3f(-1,+1,0);
 			gl.glVertex3f(+1,+1,0);
 			gl.glVertex3f(+1,-1,0);
