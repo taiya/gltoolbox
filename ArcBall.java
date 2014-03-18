@@ -1,96 +1,71 @@
+import javax.media.opengl.GL;
 
+public class Arcball extends Object {
+	double alpha = .5;
+	double[] xy_color = {1.0,0.0,0.0,alpha};
+	double[] yz_color = {0.0,1.0,0.0,alpha};
+	double[] xz_color = {0.0,0.0,1.0,alpha};
+	
+	public void draw(GL gl){
+		// gl.glEnable(GL.GL_LINE_SMOOTH);
+		gl.glDisable(GL.GL_LIGHTING);
 
-import java.awt.Point;
-
-import javax.vecmath.Quat4f;
-import javax.vecmath.Vector2f;
-import javax.vecmath.Vector3f;
-
-class ArcBall {
-    private static final float Epsilon = 1.0e-5f;
-
-    Vector3f StVec;          //Saved click vector
-    Vector3f EnVec;          //Saved drag vector
-    float adjustWidth;       //Mouse bounds width
-    float adjustHeight;      //Mouse bounds height
-
-    public ArcBall(float NewWidth, float NewHeight) {
-        StVec = new Vector3f();
-        EnVec = new Vector3f();
-        setBounds(NewWidth, NewHeight);
-    }
-
-    public void mapToSphere(Point point, Vector3f vector) {
-        //Copy paramter into temp point
-        Vector2f tempPoint = new Vector2f(point.x, point.y);
-
-        //Adjust point coords and scale down to range of [-1 ... 1]
-        tempPoint.x = (tempPoint.x * this.adjustWidth) - 1.0f;
-        tempPoint.y = 1.0f - (tempPoint.y * this.adjustHeight);
-
-        //Compute the square of the length of the vector to the point from the center
-        float length = (tempPoint.x * tempPoint.x) + (tempPoint.y * tempPoint.y);
-
-        //If the point is mapped outside of the sphere... (length > radius squared)
-        if (length > 1.0f) {
-            //Compute a normalizing factor (radius / sqrt(length))
-            float norm = (float) (1.0 / Math.sqrt(length));
-
-            //Return the "normalized" vector, a point on the sphere
-            vector.x = tempPoint.x * norm;
-            vector.y = tempPoint.y * norm;
-            vector.z = 0.0f;
-        } else    //Else it's on the inside
-        {
-            //Return a vector to a point mapped inside the sphere sqrt(radius squared - length)
-            vector.x = tempPoint.x;
-            vector.y = tempPoint.y;
-            vector.z = (float) Math.sqrt(1.0f - length);
-        }
-
-    }
-
-    public void setBounds(float NewWidth, float NewHeight) {
-        assert((NewWidth > 1.0f) && (NewHeight > 1.0f));
-
-        //Set adjustment factor for width/height
-        adjustWidth = 1.0f / ((NewWidth - 1.0f) * 0.5f);
-        adjustHeight = 1.0f / ((NewHeight - 1.0f) * 0.5f);
-    }
-
-    //Mouse down
-    public void click(Point NewPt) {
-        mapToSphere(NewPt, this.StVec);
-
-    }
-
-    //Mouse drag, calculate rotation
-    public void drag(Point NewPt, Quat4f NewRot) {
-        //Map the point to the sphere
-        this.mapToSphere(NewPt, EnVec);
-
-        //Return the quaternion equivalent to the rotation
-        if (NewRot != null) {
-            Vector3f Perp = new Vector3f();
-
-            //Compute the vector perpendicular to the begin and end vectors
-            Perp.cross(StVec,EnVec);
-
-            //Compute the length of the perpendicular vector
-            if (Perp.length() > Epsilon)    //if its non-zero
-            {
-                //We're ok, so return the perpendicular vector as the transform after all
-                NewRot.x = Perp.x;
-                NewRot.y = Perp.y;
-                NewRot.z = Perp.z;
-                //In the quaternion values, w is cosine (theta / 2), where theta is rotation angle
-                NewRot.w = StVec.dot(EnVec);
-            } else                                    //if its zero
-            {
-                //The begin and end vectors coincide, so return an identity transform
-                NewRot.x = NewRot.y = NewRot.z = NewRot.w = 0.0f;
-            }
-        }
-    }
-
+		// X-Y circle
+		gl.glColor4dv(xy_color,0);
+		gl.glPushMatrix();
+			draw_trackball_circle(gl);
+		gl.glPopMatrix();
+		
+		// Y-Z circle
+		gl.glColor4dv(yz_color,0);
+		gl.glPushMatrix();
+			gl.glRotated(90, 0, 1, 0);
+			draw_trackball_circle(gl);
+		gl.glPopMatrix();
+		
+		gl.glColor4dv(xz_color,0);
+		gl.glPushMatrix();
+			gl.glRotated(90, 1, 0, 0);
+			draw_trackball_circle(gl);
+		gl.glPopMatrix();
+	}
+	
+	public static void draw_trackball_circle(GL gl){
+		draw_circle(gl);
+		gl.glPushMatrix();
+			gl.glPushMatrix();
+				gl.glTranslated(1.0,1.0,0.0);
+				gl.glRotated(45,0.0,0.0,1.0);
+				gl.glScaled(.1,.1,.1);
+				draw_square(gl);
+			gl.glPopMatrix();
+			gl.glPushMatrix();
+				gl.glTranslated(-1.0,-1.0,0.0);
+				gl.glRotated(45,0.0,0.0,1.0);
+				gl.glScaled(.1,.1,.1);
+				draw_square(gl);
+			gl.glPopMatrix();
+		gl.glPopMatrix();
+	}
+	
+	public static void draw_circle(GL gl){
+		final int nside=100;
+		final double pi2=Math.PI*2;
+		gl.glBegin(GL.GL_LINE_LOOP);
+		for(double i=0;i<nside;i++){
+			gl.glNormal3d(Math.cos(i*pi2/nside), Math.sin(i*pi2/nside), 0.0);
+			gl.glVertex3d(Math.cos(i*pi2/nside), Math.sin(i*pi2/nside), 0.0);
+		}
+		gl.glEnd();
+	}
+	
+	public static void draw_square(GL gl) {
+		gl.glBegin(GL.GL_LINE_LOOP);
+			gl.glNormal3f(0.0f,0.0f,1.0f);
+			gl.glVertex3f(-1,+1,0);
+			gl.glVertex3f(+1,+1,0);
+			gl.glVertex3f(+1,-1,0);
+			gl.glVertex3f(-1,-1,0);
+		gl.glEnd();
+	}
 }

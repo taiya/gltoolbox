@@ -8,8 +8,8 @@ import javax.media.opengl.GLEventListener;
 import javax.swing.event.MouseInputAdapter;
 import javax.vecmath.Matrix4f;
 
-public abstract class Renderer extends MouseInputAdapter implements GLEventListener {
-	public Renderer(GLCanvas canvas) {
+public abstract class SimpleRenderer extends MouseInputAdapter implements GLEventListener {
+	public SimpleRenderer(GLCanvas canvas) {
 		this.canvas = canvas;
 		model_matrix.setIdentity();
 	}
@@ -17,7 +17,7 @@ public abstract class Renderer extends MouseInputAdapter implements GLEventListe
 	/// Reference to GLCanvas we are rendering
 	protected GLCanvas canvas = null;
 	// Container of objects to be drawn
-	protected Vector<ObjectRenderer> objects = new Vector<ObjectRenderer>();
+	protected Vector<Object> objects = new Vector<Object>();
 	// Light position
 	protected float[] light0_pos = { 0, 0, 100, 1 }; // /< light position
 	// Ambient light
@@ -109,7 +109,7 @@ public abstract class Renderer extends MouseInputAdapter implements GLEventListe
 		gl.glFlush();
 	}
 
-	public void add_render_object(ObjectRenderer obj) {
+	public void add_render_object(Object obj) {
 		/// Add the object to the render queue
 		objects.add(obj);
 		/// Save a pointer to context in the canvas

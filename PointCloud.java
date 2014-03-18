@@ -3,7 +3,7 @@ import javax.media.opengl.GL;
 
 import com.sun.opengl.util.BufferUtil;
 
-public class PointCloud extends ObjectRenderer {
+public class PointCloud extends Object {
 	protected FloatBuffer vertices = null;
 	protected int 		  npoints = 0;
 	protected float 	  pointsize = 1;

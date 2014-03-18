@@ -7,7 +7,7 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import com.sun.opengl.util.BufferUtil;
 
-public class MeshRenderer extends ObjectRenderer {
+public class Mesh extends Object {
 	private FloatBuffer vertices = null;
 	private FloatBuffer normals = null;
 	private IntBuffer faces = null;
@@ -15,7 +15,7 @@ public class MeshRenderer extends ObjectRenderer {
 	private boolean hasnormals = false;
 
 	// / @todo Improve using IntBuffer.wrap()
-	public MeshRenderer(float[] verts, int[] faces, float[] normals) {
+	public Mesh(float[] verts, int[] faces, float[] normals) {
 		// System.out.printf("TriMesh::TriMesh()\n");
 
 		// / Setup vertex buffer

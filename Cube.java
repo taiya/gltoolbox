@@ -1,6 +1,6 @@
 import javax.media.opengl.GL;
 
-public class CubeRenderer extends ObjectRenderer {
+public class Cube extends Object {
     public void draw(GL gl){
     	gl.glDisable(GL.GL_LIGHTING);
     	gl.glPushMatrix();

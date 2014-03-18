@@ -16,7 +16,7 @@ public class OpenGLCanvas extends GLCanvas {
 	private static final long serialVersionUID = 1L;
 	
 	/** mouse controller we hook up to */
-	private TrackballRenderer rend = new TrackballRenderer(this);
+	private ArcballRenderer rend = new ArcballRenderer(this);
 
 	/** constructor */
 	public OpenGLCanvas() {
@@ -33,7 +33,7 @@ public class OpenGLCanvas extends GLCanvas {
 	}
 
 	/** Adds a generic object to the renderer */
-	public void add(ObjectRenderer object) {
+	public void add(Object object) {
 		rend.add_render_object(object);
 	}
 
@@ -51,10 +51,16 @@ public class OpenGLCanvas extends GLCanvas {
 		// view3.add(new CubeRenderer());
 
 		// Test adding a point cloud
-		int howmany = 1000000;
-		float[] vpoints = PointCloud.random_points(howmany);
-		float[] vcolors = PointCloud.random_colors(howmany);		
-		PointCloud cloud = new PointCloud(vpoints, vcolors, null);
-		view3.add(cloud);	
+		if(false){
+			int howmany = 1000000;
+			float[] vpoints = PointCloud.random_points(howmany);
+			float[] vcolors = PointCloud.random_colors(howmany);		
+			PointCloud cloud = new PointCloud(vpoints, vcolors, null);
+			view3.add(cloud);	
+		}
+		
+		if(true){
+			view3.add(new Arcball());
+		}
 	}
 }
