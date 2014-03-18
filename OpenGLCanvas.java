@@ -18,8 +18,18 @@ public class OpenGLCanvas extends GLCanvas {
 	/** mouse controller we hook up to */
 	private ArcballRenderer rend = new ArcballRenderer(this);
 
-	/** constructor */
+	/** AntiAlias capabilities across all viewers*/
+	static class AntialiasCapabilities extends GLCapabilities{
+		public AntialiasCapabilities(){
+			this.setSampleBuffers(true);
+			this.setNumSamples(4);
+		}
+	}
+	
+	/** constructor given capabilities */
 	public OpenGLCanvas() {
+		// Specify AntiAliasing
+		super(new AntialiasCapabilities());
 		// OpenGL Controls
 		this.addGLEventListener(rend);
 		// Mouse Controls
@@ -47,9 +57,6 @@ public class OpenGLCanvas extends GLCanvas {
 		frame.getContentPane().add(view3);
 		frame.setVisible(true);
 
-		// Test adding some rendering objects
-		// view3.add(new CubeRenderer());
-
 		// Test adding a point cloud
 		if(false){
 			int howmany = 1000000;
@@ -61,6 +68,7 @@ public class OpenGLCanvas extends GLCanvas {
 		
 		if(true){
 			view3.add(new Arcball());
+			view3.add(new Cube());
 		}
 	}
 }

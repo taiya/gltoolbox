@@ -17,7 +17,7 @@ classdef View3
             verts = single(vertices)'; 
             faces = (int32(faces)-1)'; %remove 1-indexing
             normals = single(normals)';
-            ret = MeshRenderer(verts(:),faces(:),normals(:));
+            ret = Mesh(verts(:),faces(:),normals(:));
             this.jCanvas.add(ret);
         end
         
