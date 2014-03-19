@@ -1,13 +1,8 @@
 /**
  * @author Andrea Tagliasacchi <andrea.tagliasacchi@epfl.ch>
+ * @see http://www3.ntu.edu.sg/home/ehchua/programming/opengl/JOGL2.0.html
  * @version 1.0
  */
-
-// export MATLAB=/Applications/MATLAB_R2013a.app
-// export CLASSPATH="$MATLAB/java/jarext:jogl.jar:gluegen-rt.jar:."
-// javac *.java
-// java -Djava.library.path=$MATLAB/bin/maci64 View3
-// http://www3.ntu.edu.sg/home/ehchua/programming/opengl/JOGL2.0.html
 import javax.swing.JFrame;
 import javax.media.opengl.*;
 
@@ -23,6 +18,7 @@ public class OpenGLCanvas extends GLCanvas {
 		public AntialiasCapabilities(){
 			this.setSampleBuffers(true);
 			this.setNumSamples(4);
+			this.setDepthBits(16);
 		}
 	}
 	

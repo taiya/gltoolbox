@@ -52,7 +52,7 @@ public class ArcballRenderer extends SimpleRenderer {
 		// Arcball rotates, but doesn't translate/scale
 		gl.glMultMatrixf(super.getRotation(), 0);
 		gl.glPushMatrix();
-		arcball_geo.draw(gl);
+			arcball_geo.draw(gl);
 		gl.glPopMatrix();
 
 		// Models are also scaled translated
@@ -61,56 +61,68 @@ public class ArcballRenderer extends SimpleRenderer {
 		gl.glTranslated(tr[0], tr[1], tr[2]);
 		for (int i = 0; i < objects.size(); i++) {
 			gl.glPushMatrix(); // < avoid contamination
-			objects.elementAt(i).draw(gl);
+				objects.elementAt(i).draw(gl);
 			gl.glPopMatrix();
 		}
 
+		System.out.println("WRITING DEPTH BUFFER");
+		Utils.write_depth(drawable);
+		Utils.writeBufferToFile(drawable);
+		System.exit(0);
+		
 		if (mouse_pressed != null && mouse_pressed.getClickCount() == 1) {
-			// / Fetch screen point & avoid next event
-			Point p = mouse_pressed.getPoint();
-			mouse_pressed = null;
-
-			int viewport[] = new int[4];
-			double modelview[] = new double[16];
-			double projection[] = new double[16];
-			double[] wcoord = new double[4];
-			gl.glGetIntegerv(GL.GL_VIEWPORT, viewport, 0);
-			gl.glGetDoublev(GL.GL_MODELVIEW_MATRIX, modelview, 0);
-			gl.glGetDoublev(GL.GL_PROJECTION_MATRIX, projection, 0);
-			// System.out.println("V" + Arrays.toString(viewport));
-			// System.out.println("M" + Arrays.toString(modelview));
-			// System.out.println("P" + Arrays.toString(projection));
-
-			// / Fetch (x,y,z=depth)
-			double x = p.x;
-			double y = viewport[3] - (int) p.y - 1;
-			FloatBuffer zbuf = FloatBuffer.allocate(1);
-			gl.glReadBuffer(GL.GL_FRONT);
-			// gl.glPixelStorei(GL.GL_PACK_ALIGNMENT, 1); /// TODO CHECK
-			gl.glReadPixels(p.x, p.y, 1, 1, GL.GL_DEPTH_COMPONENT, GL.GL_FLOAT, zbuf);
-			zbuf.rewind();
-			double z = zbuf.get();
-			System.out.printf("Window coords are [%f %f %f]\n", x, y, z);
-
-			if (true)
-				return;
-
-			// / Invert MVP
-			boolean unproject_ok = glu.gluUnProject(x, y, z, modelview, 0, projection, 0, viewport,
-					0, wcoord, 0);
-			boolean not_farplane = Math.abs(z - 1) > 1e-10;
-			if (unproject_ok && not_farplane) {
-				System.out.println("World coords are (" + wcoord[0] + ", " + wcoord[1] + ", "
-						+ wcoord[2] + ")");
-				// setOriginAt(wcoord);
-				canvas.display();
-			}
+			// recenter_scene(drawable);
+			Utils.write_depth(drawable);
 		}
 
 		gl.glFlush();
 	}
+	
+	private void recenter_scene(GLAutoDrawable drawable){
+		GL gl = drawable.getGL();
+		
+		// / Fetch screen point & avoid next event
+		Point p = mouse_pressed.getPoint();
+		mouse_pressed = null;
+		
+		int viewport[] = new int[4];
+		double modelview[] = new double[16];
+		double projection[] = new double[16];
+		double[] wcoord = new double[4];
+		gl.glGetIntegerv(GL.GL_VIEWPORT, viewport, 0);
+		gl.glGetDoublev(GL.GL_MODELVIEW_MATRIX, modelview, 0);
+		gl.glGetDoublev(GL.GL_PROJECTION_MATRIX, projection, 0);
+		// System.out.println("V" + Arrays.toString(viewport));
+		// System.out.println("M" + Arrays.toString(modelview));
+		// System.out.println("P" + Arrays.toString(projection));
 
+		// / Fetch (x,y,z=depth)
+		double x = p.x;
+		double y = ((double) viewport[3]) - ((double) p.y) - 1.0;
+		FloatBuffer zbuf = FloatBuffer.allocate(1);
+		// gl.glReadBuffer(GL.GL_FRONT);
+		// gl.glPixelStorei(GL.GL_PACK_ALIGNMENT, 1); /// TODO CHECK
+		gl.glReadPixels(p.x, p.y, 1, 1, GL.GL_DEPTH_COMPONENT, GL.GL_FLOAT, zbuf);
+		zbuf.rewind();
+		double z = zbuf.get();
+		System.out.printf("Window coords are [%f %f %f]\n", x, y, z);
+
+		if(true) return;
+
+		// / Invert MVP
+		boolean unproject_ok = glu.gluUnProject(x, y, z, modelview, 0, projection, 0, viewport,
+				0, wcoord, 0);
+		boolean not_farplane = Math.abs(z - 1) > 1e-10;
+		if (unproject_ok && not_farplane) {
+			System.out.println("World coords are (" + wcoord[0] + ", " + wcoord[1] + ", "
+					+ wcoord[2] + ")");
+			setOriginAt(wcoord);
+			canvas.display();
+		}
+	}
+	
 	@Override
+	
 	// Arcball needs to know about window geometry
 	public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
 		super.reshape(drawable, x, y, width, height);
@@ -154,7 +166,8 @@ public class ArcballRenderer extends SimpleRenderer {
 
 	@Override
 	public void mouseClicked(MouseEvent event) {
-		/** @see http://www.java-tips.org/index.php?option=com_content&task=view&id=1628&Itemid=29 */
+		/** @see http://www.java-tips.org/index.php?option=com_content&task=view&id=1628&Itemid=29 
+		 * @see http://nehe.gamedev.net/article/using_gluunproject/16013 */
 		mouse_pressed = event;
 		canvas.display();
 	}

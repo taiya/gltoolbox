@@ -39,7 +39,8 @@ public abstract class SimpleRenderer extends MouseInputAdapter implements GLEven
 	
 	// 
 	private float scale = 1;
-	private float[] translation = {.5f,.5f,.5f};
+	// private float[] translation = {-.5f,-.5f,-.5f};
+	private float[] translation = {.0f,.0f,.0f};
 	
 	public float getScale(){ return scale; }
 	public float[] getTranslation() { return translation; }
@@ -83,10 +84,14 @@ public abstract class SimpleRenderer extends MouseInputAdapter implements GLEven
 		// Common Initialization
 		gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // /< Background
 		gl.glColor3f(1.0f, 0.0f, 0.0f); // /< foreground
-		gl.glEnable(GL.GL_DEPTH_TEST);
-		gl.glDepthRange(0.0f, 1.0f);
-		gl.glDepthFunc(GL.GL_LEQUAL);
-		
+	
+        // Depth Buffer Setup
+		gl.glEnable(GL.GL_DEPTH_TEST); ///< enable depth buffering
+		gl.glDepthMask(true);          ///< depth buffer writable
+		gl.glDepthRange(0.0f, 1.0f);   ///< depth value is [0,1]
+		gl.glDepthFunc(GL.GL_LEQUAL);  ///< closest geometry kept
+		gl.glClearDepth(1.0f);		   ///< clear with this value
+        
 		// Simple lighting
 		gl.glEnable(GL.GL_LIGHTING);
 		gl.glEnable(GL.GL_LIGHT0);
@@ -133,8 +138,11 @@ public abstract class SimpleRenderer extends MouseInputAdapter implements GLEven
 
 		gl.glPushMatrix();
 			gl.glMultMatrixf(getRotation(), 0);
-			for (int i = 0; i < objects.size(); i++)
-				objects.elementAt(i).draw(gl);
+			for (int i = 0; i < objects.size(); i++){
+				gl.glPushMatrix();
+					objects.elementAt(i).draw(gl);
+				gl.glPopMatrix();
+			}
 		gl.glPopMatrix();
 		gl.glFlush();
 	}
