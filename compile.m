@@ -13,8 +13,12 @@ append_src('OpenGLCanvas.java');
 append_src('SimpleRenderer.java');
 append_src('ArcballRenderer.java');
 
+% Utilities
+append_src('Utils.java');
+
 % Objects that can be rendered + interface
 append_src('Object.java');
+append_src('Arcball.java');
 append_src('Cube.java');
 append_src('Mesh.java');
 append_src('PointCloud.java');
