@@ -13,6 +13,8 @@ import com.sun.opengl.util.BufferUtil;
 import java.awt.Color;
 
 public class Utils {
+
+	/** call it in display() after drawing but before glFlush() */
 	public static void write_depth(GLAutoDrawable drawable) {
 		int width = drawable.getWidth();
 		int height = drawable.getHeight();
@@ -21,31 +23,28 @@ public class Utils {
 		File outputFile = new File("depthbuffer.png");
 		GL gl = drawable.getGL();
 
-		FloatBuffer zbuf = FloatBuffer.allocate(2*npixels);
-		// gl.glPixelStorei(GL.GL_PACK_ALIGNMENT, 1);
+		FloatBuffer zbuf = FloatBuffer.allocate(npixels);
 		gl.glReadBuffer(GL.GL_BACK);
 		gl.glReadPixels(0, 0, width, height, GL.GL_DEPTH_COMPONENT, GL.GL_FLOAT, zbuf);
 		zbuf.rewind();
-		
-		/// Fill the image
+
+		// Fill the image
 		BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 		for (int x = 0; x < width; x++)
-			for (int y = 0; y < height; y++){
-				float zdepth = zbuf.get(x+y*width);
-//				System.out.println(zdepth);
+			for (int y = 0; y < height; y++) {
+				float zdepth = zbuf.get(x + y * width);
 				int color = Color.HSBtoRGB(0, 0, zdepth);
-				bufferedImage.setRGB(x, height-y-1, color);
+				bufferedImage.setRGB(x, height - y - 1, color);
 			}
-		
-		try{
+		try {
 			ImageIO.write(bufferedImage, "PNG", outputFile);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
-		
-	public static void writeBufferToFile(GLAutoDrawable drawable) {
+	/** call it in display() after drawing but before glFlush() */
+	public static void write_color(GLAutoDrawable drawable) {
 		File outputFile = new File("colorbuffer.png");
 		int width = drawable.getWidth();
 		int height = drawable.getHeight();
@@ -89,7 +88,6 @@ public class Utils {
 		}
 
 		BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-
 		bufferedImage.setRGB(0, 0, width, height, pixelInts, 0, width);
 
 		try {

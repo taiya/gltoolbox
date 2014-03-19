@@ -14,18 +14,19 @@ public class OpenGLCanvas extends GLCanvas {
 	private ArcballRenderer rend = new ArcballRenderer(this);
 
 	/** AntiAlias capabilities across all viewers*/
-	static class AntialiasCapabilities extends GLCapabilities{
-		public AntialiasCapabilities(){
-			this.setSampleBuffers(true);
-			this.setNumSamples(4);
-			this.setDepthBits(16);
+	static class MyCapabilities extends GLCapabilities{
+		public MyCapabilities(){
+			/** @warning: enabling this breaks depth buffer read!! */
+			// this.setSampleBuffers(true);
+			// this.setNumSamples(4);
+			// this.setDepthBits(32);
 		}
 	}
 	
 	/** constructor given capabilities */
 	public OpenGLCanvas() {
 		// Specify AntiAliasing
-		super(new AntialiasCapabilities());
+		// super(new MyCapabilities());
 		// OpenGL Controls
 		this.addGLEventListener(rend);
 		// Mouse Controls
@@ -63,8 +64,7 @@ public class OpenGLCanvas extends GLCanvas {
 			view3.add(cloud);	
 		}
 		
-		if(true){
-			view3.add(new Cube());
-		}
+		/// Just draw a unit cube
+		if(false) view3.add(new Cube());
 	}
 }

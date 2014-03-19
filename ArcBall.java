@@ -31,7 +31,10 @@ public class Arcball extends Object {
 		/// TODO alpha blending
 		// gl.glDisable(GL.GL_BLEND);
 		// gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
-				
+		
+		// Circles lines widths
+		gl.glLineWidth(1);
+		
 		gl.glPushMatrix();
 			xy_material(gl);
 			draw_trackball_circle(gl);

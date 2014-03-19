@@ -46,15 +46,29 @@ public class ArcballRenderer extends SimpleRenderer {
 		gl.glMatrixMode(GL.GL_MODELVIEW);
 		gl.glLoadIdentity();
 
-		// Make unit sphere fit loosely
+		// TODO Make unit sphere fit loosely
 		// gl.glScaled(.85, .85, .85);
 
 		// Arcball rotates, but doesn't translate/scale
 		gl.glMultMatrixf(super.getRotation(), 0);
 		gl.glPushMatrix();
-			arcball_geo.draw(gl);
+			// arcball_geo.draw(gl);
 		gl.glPopMatrix();
 
+		/// GREEN CUBE
+		gl.glPushMatrix();
+			gl.glRotated(90,1,0,0);
+			gl.glScaled(.5,.5,.5);
+			new Cube().draw(gl);
+		gl.glPopMatrix();
+		/// RED CUBE
+		gl.glPushMatrix();
+			gl.glTranslated(-1, 0, +2.5);
+			gl.glScaled(.5,.5,.5);
+			new Cube().draw(gl);
+		gl.glPopMatrix();
+
+		
 		// Models are also scaled translated
 		gl.glScaled(getScale(), getScale(), getScale());
 		float[] tr = getTranslation();
@@ -67,7 +81,7 @@ public class ArcballRenderer extends SimpleRenderer {
 
 		System.out.println("WRITING DEPTH BUFFER");
 		Utils.write_depth(drawable);
-		Utils.writeBufferToFile(drawable);
+		Utils.write_color(drawable);
 		System.exit(0);
 		
 		if (mouse_pressed != null && mouse_pressed.getClickCount() == 1) {
@@ -122,9 +136,8 @@ public class ArcballRenderer extends SimpleRenderer {
 	}
 	
 	@Override
-	
-	// Arcball needs to know about window geometry
 	public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+		// Arcball needs to know about window geometry
 		super.reshape(drawable, x, y, width, height);
 		arcBall.setBounds(width, height);
 		adjust_pan_speed(width, height);
