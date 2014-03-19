@@ -1,3 +1,4 @@
+import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.util.Vector;
 
@@ -39,20 +40,31 @@ public abstract class SimpleRenderer extends MouseInputAdapter implements GLEven
 	
 	// 
 	private float scale = 1;
-	// private float[] translation = {-.5f,-.5f,-.5f};
 	private float[] translation = {.0f,.0f,.0f};
 	
 	public float getScale(){ return scale; }
 	public float[] getTranslation() { return translation; }
 	public void setScale(float scale){ this.scale = scale; }
 	public void setTranslation(float[] translation){ this.translation = translation; }
+	
+	
 	public void setOriginAt(double[] tr){ 
-		this.translation[0] = - (float) tr[0];
-		this.translation[1] = - (float) tr[1];
-		this.translation[2] = - (float) tr[2];
+		this.translation[0] = -(float) tr[0];
+		this.translation[1] = -(float) tr[1];
+		this.translation[2] = -(float) tr[2];
 	}
-		
-	// / @todo can this
+
+	/**
+	 * Centers a scene so that the clicked point point p becomes the arcball center
+	 */
+	protected void setSceneCenter(Point p){
+		GL gl = canvas.getGL();	
+		double[] point_glwin_coords = Utils.getGLWindowCoordinates(p,gl);
+		double[] point_world_coords = Utils.windowToWorld(point_glwin_coords,gl);
+		if(point_world_coords!=null) this.setOriginAt(point_world_coords);
+	}
+	
+	// @todo can this be simplified?
 	void cache_model_matrix() {
 		model_matrix_array[0] = model_matrix.m00;
 		model_matrix_array[1] = model_matrix.m10;

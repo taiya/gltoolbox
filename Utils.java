@@ -7,18 +7,81 @@ import java.nio.FloatBuffer;
 import javax.imageio.ImageIO;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.glu.GLU;
 
 import com.sun.opengl.util.BufferUtil;
 
 import java.awt.Color;
+import java.awt.Point;
 
 public class Utils {
 
+	/** 
+	 * @brief converts an AWT space coordinate into the OpenGL coordinate frame 
+	 * @note type is double because gluUnProject uses that
+	 * */
+	public static double[] getGLWindowCoordinates(Point p, GL gl){
+		if(gl==null) System.out.println("GL NULL");
+		
+		//--- Fetch vieport
+		int viewport[] = new int[4];
+		gl.glGetIntegerv(GL.GL_VIEWPORT, viewport, 0);
+		// System.out.println("V" + Arrays.toString(viewport));
+		
+		//--- Fetch vieport
+		int x = p.x;
+		int y = viewport[3] -p.y -1; // OpenGL has flipped axis
+
+		//--- Fetch vieport
+		FloatBuffer zbuf = FloatBuffer.allocate(1);
+		gl.glReadBuffer(GL.GL_BACK);
+		gl.glReadPixels(x, y, 1, 1, GL.GL_DEPTH_COMPONENT, GL.GL_FLOAT, zbuf);
+		zbuf.rewind();
+		double z = zbuf.get();
+		// System.out.println("Z" + z);
+		
+		//--- Assemble result
+		double[] ret = {x,y,z};
+		return ret;
+	}
+	
+	/** 
+	 * @brief converts a point in OpenGL screen coordinate into world coordinats by accessing the depth buffer
+	 * @note type is double because gluUnProject uses double
+	 * @see http://www.java-tips.org/index.php?option=com_content&task=view&id=1628&Itemid=29 
+	 * @see http://nehe.gamedev.net/article/using_gluunproject/16013
+	 */
+	public static double[] windowToWorld(double[] p, GL gl){
+		//--- Nothing was found?
+		final double DEPTH_THRESHOLD = 1;
+		if(p[2]>=DEPTH_THRESHOLD)
+			return null;
+		
+		//--- Fetch matrices
+		int viewport[] = new int[4];
+		double modelview[] = new double[16];
+		double projection[] = new double[16];
+		gl.glGetIntegerv(GL.GL_VIEWPORT, viewport, 0);
+		gl.glGetDoublev(GL.GL_MODELVIEW_MATRIX, modelview, 0);
+		gl.glGetDoublev(GL.GL_PROJECTION_MATRIX, projection, 0);
+		// System.out.println("M" + Arrays.toString(modelview));
+		// System.out.println("P" + Arrays.toString(projection));
+		// System.out.println("V" + Arrays.toString(viewport));
+		
+		//--- Invert MVP
+		GLU glu = new GLU();
+		double[] p_ = new double[4];
+		boolean unproject_ok = glu.gluUnProject(p[0], p[1], p[2], modelview, 0, projection, 0, viewport, 0, p_, 0);
+		if(!unproject_ok) return null;
+		double[] ret = {p_[0], p_[1], p_[2]};
+		return ret;
+	}
+	
 	/** call it in display() after drawing but before glFlush() */
 	public static void write_depth(GLAutoDrawable drawable) {
 		int width = drawable.getWidth();
 		int height = drawable.getHeight();
-		System.out.println(width + " " + height);
+		// System.out.println(width + " " + height);
 		int npixels = drawable.getWidth() * drawable.getHeight();
 		File outputFile = new File("depthbuffer.png");
 		GL gl = drawable.getGL();

@@ -1,7 +1,6 @@
 import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
-import java.nio.FloatBuffer;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GLAutoDrawable;
@@ -16,12 +15,15 @@ public class ArcballRenderer extends SimpleRenderer {
 	private Matrix4f LastRot = new Matrix4f();
 	private ArcBallHelper arcBall = null;
 	private Arcball arcball_geo = new Arcball();
+	
 	/** Controls zoom speed */
-	float scale_move_ratio = .05f; // / TODO make the zoom ratio exposed!
+	private float scale_move_ratio = .05f; // / TODO make the zoom ratio exposed!
+	
 	/** Controls pan speed */
-	float pan_move_ratio = 1;
+	private float pan_move_ratio = 1;
+	
 	/** Used by the click-to-center logic */
-	private MouseEvent mouse_pressed = null;
+	private MouseEvent mouse_clicked_event = null;
 
 	public ArcballRenderer(GLCanvas canvas) {
 		super(canvas);
@@ -38,7 +40,7 @@ public class ArcballRenderer extends SimpleRenderer {
 		pan_move_ratio = 1.0f / ((float) canvas.getWidth());
 		// System.out.printf("pan_move_ratio: %f\n", pan_move_ratio);
 	}
-
+	
 	@Override
 	public void display(GLAutoDrawable drawable) {
 		GL gl = drawable.getGL();
@@ -46,30 +48,13 @@ public class ArcballRenderer extends SimpleRenderer {
 		gl.glMatrixMode(GL.GL_MODELVIEW);
 		gl.glLoadIdentity();
 
-		// TODO Make unit sphere fit loosely
-		// gl.glScaled(.85, .85, .85);
-
-		// Arcball rotates, but doesn't translate/scale
+		//---  Arcball rotates, but doesn't translate/scale (always at origin)
 		gl.glMultMatrixf(super.getRotation(), 0);
 		gl.glPushMatrix();
-			// arcball_geo.draw(gl);
+			arcball_geo.draw(gl);
 		gl.glPopMatrix();
-
-		/// GREEN CUBE
-		gl.glPushMatrix();
-			gl.glRotated(90,1,0,0);
-			gl.glScaled(.5,.5,.5);
-			new Cube().draw(gl);
-		gl.glPopMatrix();
-		/// RED CUBE
-		gl.glPushMatrix();
-			gl.glTranslated(-1, 0, +2.5);
-			gl.glScaled(.5,.5,.5);
-			new Cube().draw(gl);
-		gl.glPopMatrix();
-
 		
-		// Models are also scaled translated
+		//--- Models need also to be scaled and translated
 		gl.glScaled(getScale(), getScale(), getScale());
 		float[] tr = getTranslation();
 		gl.glTranslated(tr[0], tr[1], tr[2]);
@@ -78,59 +63,25 @@ public class ArcballRenderer extends SimpleRenderer {
 				objects.elementAt(i).draw(gl);
 			gl.glPopMatrix();
 		}
-
-		System.out.println("WRITING DEPTH BUFFER");
-		Utils.write_depth(drawable);
-		Utils.write_color(drawable);
-		System.exit(0);
 		
-		if (mouse_pressed != null && mouse_pressed.getClickCount() == 1) {
-			// recenter_scene(drawable);
-			Utils.write_depth(drawable);
+		//--- Double click centers the scene at mouse point (like MeshLab)
+		// @note setSceneCenter must be called within display() otherwise you get an exception!!
+		if (mouse_clicked_event != null && mouse_clicked_event.getClickCount() == 2){
+			// Utils.write_depth(drawable); //< to test the antialias bug
+			Point p = mouse_clicked_event.getPoint();
+			mouse_clicked_event = null;
+			super.setSceneCenter(p);
+			display(drawable); ///< repaint after move
 		}
 
 		gl.glFlush();
 	}
 	
-	private void recenter_scene(GLAutoDrawable drawable){
-		GL gl = drawable.getGL();
-		
-		// / Fetch screen point & avoid next event
-		Point p = mouse_pressed.getPoint();
-		mouse_pressed = null;
-		
-		int viewport[] = new int[4];
-		double modelview[] = new double[16];
-		double projection[] = new double[16];
-		double[] wcoord = new double[4];
-		gl.glGetIntegerv(GL.GL_VIEWPORT, viewport, 0);
-		gl.glGetDoublev(GL.GL_MODELVIEW_MATRIX, modelview, 0);
-		gl.glGetDoublev(GL.GL_PROJECTION_MATRIX, projection, 0);
-		// System.out.println("V" + Arrays.toString(viewport));
-		// System.out.println("M" + Arrays.toString(modelview));
-		// System.out.println("P" + Arrays.toString(projection));
-
-		// / Fetch (x,y,z=depth)
-		double x = p.x;
-		double y = ((double) viewport[3]) - ((double) p.y) - 1.0;
-		FloatBuffer zbuf = FloatBuffer.allocate(1);
-		// gl.glReadBuffer(GL.GL_FRONT);
-		// gl.glPixelStorei(GL.GL_PACK_ALIGNMENT, 1); /// TODO CHECK
-		gl.glReadPixels(p.x, p.y, 1, 1, GL.GL_DEPTH_COMPONENT, GL.GL_FLOAT, zbuf);
-		zbuf.rewind();
-		double z = zbuf.get();
-		System.out.printf("Window coords are [%f %f %f]\n", x, y, z);
-
-		if(true) return;
-
-		// / Invert MVP
-		boolean unproject_ok = glu.gluUnProject(x, y, z, modelview, 0, projection, 0, viewport,
-				0, wcoord, 0);
-		boolean not_farplane = Math.abs(z - 1) > 1e-10;
-		if (unproject_ok && not_farplane) {
-			System.out.println("World coords are (" + wcoord[0] + ", " + wcoord[1] + ", "
-					+ wcoord[2] + ")");
-			setOriginAt(wcoord);
+	@Override
+	public void mouseClicked(MouseEvent event) {
+		//--- Double click centers the scene at mouse point (like MeshLab)
+		if (event.getClickCount() == 2){
+			mouse_clicked_event = event;
 			canvas.display();
 		}
 	}
@@ -178,21 +129,13 @@ public class ArcballRenderer extends SimpleRenderer {
 	}
 
 	@Override
-	public void mouseClicked(MouseEvent event) {
-		/** @see http://www.java-tips.org/index.php?option=com_content&task=view&id=1628&Itemid=29 
-		 * @see http://nehe.gamedev.net/article/using_gluunproject/16013 */
-		mouse_pressed = event;
-		canvas.display();
-	}
-
-	@Override
 	public void mouseWheelMoved(MouseWheelEvent e) {
 		setScale(getScale() * (1 + (scale_move_ratio * e.getWheelRotation())));
 		canvas.display();
 	}
 
 	/**
-	 * The math to implementing ArcBall functionality
+	 * The math to implementing ArcBall functionalities
 	 */
 	class ArcBallHelper {
 		private static final float Epsilon = 1.0e-5f;

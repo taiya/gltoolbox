@@ -16,19 +16,21 @@ public class OpenGLCanvas extends GLCanvas {
 	/** AntiAlias capabilities across all viewers*/
 	static class MyCapabilities extends GLCapabilities{
 		public MyCapabilities(){
-			/** @warning: enabling this breaks depth buffer read!! */
-			// this.setSampleBuffers(true);
-			// this.setNumSamples(4);
-			// this.setDepthBits(32);
+			System.err.print("WARNING: Depth Buffer Operations Corrupted");
+			this.setSampleBuffers(true);
+			this.setNumSamples(4);
+			this.setDepthBits(32);
 		}
 	}
 	
 	/** constructor given capabilities */
 	public OpenGLCanvas() {
-		// Specify AntiAliasing
+		// TODO AntiAliasing (see SHA#81ed3a23d2)
 		// super(new MyCapabilities());
-		// OpenGL Controls
+		
+		// OpenGL init/display
 		this.addGLEventListener(rend);
+		
 		// Mouse Controls
 		this.addMouseListener(rend);
 		this.addMouseMotionListener(rend);
@@ -56,7 +58,7 @@ public class OpenGLCanvas extends GLCanvas {
 		frame.setVisible(true);
 
 		// Test adding a point cloud
-		if(false){
+		if(true){
 			int howmany = 1000000;
 			float[] vpoints = PointCloud.random_points(howmany);
 			float[] vcolors = PointCloud.random_colors(howmany);		
