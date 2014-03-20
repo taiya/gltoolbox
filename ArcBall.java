@@ -1,4 +1,4 @@
-import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 
 /** Renders an arcball a-la MeshLab */
 public class Arcball extends Object {
@@ -8,20 +8,20 @@ public class Arcball extends Object {
 	float[] yz_color = {0.0f,1.0f,0.0f,alpha};
 	float[] xz_color = {0.0f,0.0f,1.0f,alpha};
 	
-	public void xy_material(GL gl){
+	public void xy_material(GL2 gl){
 		gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_DIFFUSE, diffuse, 0);
 		gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT, xy_color, 0);		
 	}
-	public void yz_material(GL gl){
+	public void yz_material(GL2 gl){
 		gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_DIFFUSE, diffuse, 0);
 		gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT, yz_color, 0);		
 	}
-	public void xz_material(GL gl){
+	public void xz_material(GL2 gl){
 		gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_DIFFUSE, diffuse, 0);
 		gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT, xz_color, 0);		
 	}
 	
-	public void draw(GL gl){
+	public void draw(GL2 gl){
 		/// Don't show lines as segments
 		gl.glEnable(GL.GL_LINE_SMOOTH);
 		
@@ -54,7 +54,7 @@ public class Arcball extends Object {
 		gl.glPopMatrix();
 	}
 	
-	public static void draw_trackball_circle(GL gl){
+	public static void draw_trackball_circle(GL2 gl){
 		draw_circle(gl);
 		gl.glPushMatrix();
 			gl.glPushMatrix();
@@ -72,7 +72,7 @@ public class Arcball extends Object {
 		gl.glPopMatrix();
 	}
 	
-	public static void draw_circle(GL gl){
+	public static void draw_circle(GL2 gl){
 		final int nside=100;
 		final double pi2=Math.PI*2;
 		gl.glBegin(GL.GL_LINE_LOOP);
@@ -83,7 +83,7 @@ public class Arcball extends Object {
 		gl.glEnd();
 	}
 	
-	public static void draw_square(GL gl) {
+	public static void draw_square(GL2 gl) {
 		gl.glBegin(GL.GL_LINE_LOOP);
 			/// TODO why [0,0,1] doesn't work properly?
 			gl.glNormal3f(0.0f,0.0f,0.0f);

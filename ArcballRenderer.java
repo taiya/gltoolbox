@@ -2,9 +2,8 @@ import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 
-import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCanvas;
 import javax.vecmath.Matrix4f;
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector2f;
@@ -20,32 +19,32 @@ public class ArcballRenderer extends SimpleRenderer {
 	private float scale_move_ratio = .05f; // / TODO make the zoom ratio exposed!
 	
 	/** Controls pan speed */
-	private float pan_move_ratio = 1;
+	// private float pan_move_ratio = 1;
 	
 	/** Used by the click-to-center logic */
 	private MouseEvent mouse_clicked_event = null;
 
-	public ArcballRenderer(GLCanvas canvas) {
-		super(canvas);
+	public ArcballRenderer(GLAutoDrawable drawable) {
+		super(drawable);
 		LastRot.setIdentity();
-		arcBall = new ArcBallHelper(canvas.getWidth(), canvas.getHeight());
-		adjust_pan_speed(canvas.getWidth(), canvas.getHeight());
+		arcBall = new ArcBallHelper(drawable.getWidth(), drawable.getHeight());
+		adjust_pan_speed(drawable.getWidth(), drawable.getHeight());
 	}
-
+	
 	/**
 	 * Make sure panning speed is ~constant TODO use it
 	 */
 	private void adjust_pan_speed(int width, int height) {
-		// / Pan speed adjusted normalized w.r.t. window size
-		pan_move_ratio = 1.0f / ((float) canvas.getWidth());
+		// Pan speed adjusted normalized w.r.t. window size
+		// pan_move_ratio = 1.0f / ((float) drawable.getWidth());
 		// System.out.printf("pan_move_ratio: %f\n", pan_move_ratio);
 	}
 	
 	@Override
 	public void display(GLAutoDrawable drawable) {
-		GL gl = drawable.getGL();
-		gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-		gl.glMatrixMode(GL.GL_MODELVIEW);
+		GL2 gl = drawable.getGL().getGL2();
+		gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
+		gl.glMatrixMode(GL2.GL_MODELVIEW);
 		gl.glLoadIdentity();
 
 		//---  Arcball rotates, but doesn't translate/scale (always at origin)
@@ -56,7 +55,7 @@ public class ArcballRenderer extends SimpleRenderer {
 		
 		//--- Models need also to be scaled and translated
 		gl.glScaled(getScale(), getScale(), getScale());
-		float[] tr = getTranslation();
+		double[] tr = getTranslation();
 		gl.glTranslated(tr[0], tr[1], tr[2]);
 		for (int i = 0; i < objects.size(); i++) {
 			gl.glPushMatrix(); // < avoid contamination
@@ -82,7 +81,7 @@ public class ArcballRenderer extends SimpleRenderer {
 		//--- Double click centers the scene at mouse point (like MeshLab)
 		if (event.getClickCount() == 2){
 			mouse_clicked_event = event;
-			canvas.display();
+			drawable.display();
 		}
 	}
 	
@@ -125,13 +124,13 @@ public class ArcballRenderer extends SimpleRenderer {
 		}
 
 		// Finally refresh the OpenGL window
-		canvas.display();
+		drawable.display();
 	}
 
 	@Override
 	public void mouseWheelMoved(MouseWheelEvent e) {
 		setScale(getScale() * (1 + (scale_move_ratio * e.getWheelRotation())));
-		canvas.display();
+		drawable.display();
 	}
 
 	/**

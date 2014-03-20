@@ -1,7 +1,7 @@
 function success = compile()
 clc; close all; clear java;
 jPath = fullfile(matlabroot,'java','jarext');
-cp = [fullfile(jPath,'jogl.jar') pathsep fullfile(jPath,'gluegen-rt.jar') pathsep pwd()];
+cp = [fullfile(jPath,'jogl-all.jar') pathsep fullfile(jPath,'gluegen-rt.jar') pathsep pwd()];
 
 % Sources to be compiled
 srcs = [];

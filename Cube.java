@@ -1,11 +1,11 @@
-import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 
 public class Cube extends Object {
-    public void draw(GL gl){
-    	gl.glDisable(GL.GL_LIGHTING);
+    public void draw(GL2 gl){
+    	gl.glDisable(GL2.GL_LIGHTING);
     	gl.glPushMatrix();
     		gl.glScaled(.5, .5, .5);
-	        gl.glBegin(GL.GL_QUADS);           	// Draw A Quad
+	        gl.glBegin(GL2.GL_QUADS);           	// Draw A Quad
 	            gl.glColor3f(0.0f, 1.0f, 0.0f);			// Set The Color To Green
 	            gl.glVertex3f(1.0f, 1.0f, -1.0f);			// Top Right Of The Quad (Top)
 	            gl.glVertex3f(-1.0f, 1.0f, -1.0f);			// Top Left Of The Quad (Top)

@@ -4,7 +4,9 @@
  * @version 1.0
  */
 import javax.swing.JFrame;
-import javax.media.opengl.*;
+import javax.media.opengl.GL2;
+import javax.media.opengl.awt.GLCanvas;
+//import javax.media.opengl.GLCapabilities;
 
 public class OpenGLCanvas extends GLCanvas {
 	/** For serialization */
@@ -13,15 +15,16 @@ public class OpenGLCanvas extends GLCanvas {
 	/** mouse controller we hook up to */
 	private ArcballRenderer rend = new ArcballRenderer(this);
 
-	/** AntiAlias capabilities across all viewers*/
-	static class MyCapabilities extends GLCapabilities{
-		public MyCapabilities(){
-			System.err.print("WARNING: Depth Buffer Operations Corrupted");
-			this.setSampleBuffers(true);
-			this.setNumSamples(4);
-			this.setDepthBits(32);
-		}
-	}
+//	/** AntiAlias capabilities across all viewers*/
+//	// TODO AntiAliasing (see SHA#81ed3a23d2)
+//	static class MyCapabilities extends GLCapabilities{
+//		public MyCapabilities(){
+//			System.err.print("WARNING: Depth Buffer Operations Corrupted");
+//			this.setSampleBuffers(true);
+//			this.setNumSamples(4);
+//			this.setDepthBits(32);
+//		}
+//	}
 	
 	/** constructor given capabilities */
 	public OpenGLCanvas() {
@@ -39,7 +42,7 @@ public class OpenGLCanvas extends GLCanvas {
 
 	/** Fetches the used OpenGL version */
 	public String gl_version() {
-		return getGL().glGetString(GL.GL_VERSION);
+		return getGL().getGL2().glGetString(GL2.GL_VERSION);
 	}
 
 	/** Adds a generic object to the renderer */

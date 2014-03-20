@@ -5,11 +5,9 @@ import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
 import javax.imageio.ImageIO;
-import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.glu.GLU;
-
-import com.sun.opengl.util.BufferUtil;
 
 import java.awt.Color;
 import java.awt.Point;
@@ -20,12 +18,12 @@ public class Utils {
 	 * @brief converts an AWT space coordinate into the OpenGL coordinate frame 
 	 * @note type is double because gluUnProject uses that
 	 * */
-	public static double[] getGLWindowCoordinates(Point p, GL gl){
+	public static double[] getGLWindowCoordinates(Point p, GL2 gl){
 		if(gl==null) System.out.println("GL NULL");
 		
 		//--- Fetch vieport
 		int viewport[] = new int[4];
-		gl.glGetIntegerv(GL.GL_VIEWPORT, viewport, 0);
+		gl.glGetIntegerv(GL2.GL_VIEWPORT, viewport, 0);
 		// System.out.println("V" + Arrays.toString(viewport));
 		
 		//--- Fetch vieport
@@ -34,8 +32,8 @@ public class Utils {
 
 		//--- Fetch vieport
 		FloatBuffer zbuf = FloatBuffer.allocate(1);
-		gl.glReadBuffer(GL.GL_BACK);
-		gl.glReadPixels(x, y, 1, 1, GL.GL_DEPTH_COMPONENT, GL.GL_FLOAT, zbuf);
+		gl.glReadBuffer(GL2.GL_BACK);
+		gl.glReadPixels(x, y, 1, 1, GL2.GL_DEPTH_COMPONENT, GL2.GL_FLOAT, zbuf);
 		zbuf.rewind();
 		double z = zbuf.get();
 		// System.out.println("Z" + z);
@@ -51,7 +49,7 @@ public class Utils {
 	 * @see http://www.java-tips.org/index.php?option=com_content&task=view&id=1628&Itemid=29 
 	 * @see http://nehe.gamedev.net/article/using_gluunproject/16013
 	 */
-	public static double[] windowToWorld(double[] p, GL gl){
+	public static double[] windowToWorld(double[] p, GL2 gl){
 		//--- Nothing was found?
 		final double DEPTH_THRESHOLD = 1;
 		if(p[2]>=DEPTH_THRESHOLD)
@@ -61,9 +59,9 @@ public class Utils {
 		int viewport[] = new int[4];
 		double modelview[] = new double[16];
 		double projection[] = new double[16];
-		gl.glGetIntegerv(GL.GL_VIEWPORT, viewport, 0);
-		gl.glGetDoublev(GL.GL_MODELVIEW_MATRIX, modelview, 0);
-		gl.glGetDoublev(GL.GL_PROJECTION_MATRIX, projection, 0);
+		gl.glGetIntegerv(GL2.GL_VIEWPORT, viewport, 0);
+		gl.glGetDoublev(GL2.GL_MODELVIEW_MATRIX, modelview, 0);
+		gl.glGetDoublev(GL2.GL_PROJECTION_MATRIX, projection, 0);
 		// System.out.println("M" + Arrays.toString(modelview));
 		// System.out.println("P" + Arrays.toString(projection));
 		// System.out.println("V" + Arrays.toString(viewport));
@@ -84,11 +82,11 @@ public class Utils {
 		// System.out.println(width + " " + height);
 		int npixels = drawable.getWidth() * drawable.getHeight();
 		File outputFile = new File("depthbuffer.png");
-		GL gl = drawable.getGL();
+		GL2 gl = drawable.getGL().getGL2();
 
 		FloatBuffer zbuf = FloatBuffer.allocate(npixels);
-		gl.glReadBuffer(GL.GL_BACK);
-		gl.glReadPixels(0, 0, width, height, GL.GL_DEPTH_COMPONENT, GL.GL_FLOAT, zbuf);
+		gl.glReadBuffer(GL2.GL_BACK);
+		gl.glReadPixels(0, 0, width, height, GL2.GL_DEPTH_COMPONENT, GL2.GL_FLOAT, zbuf);
 		zbuf.rewind();
 
 		// Fill the image
@@ -112,19 +110,19 @@ public class Utils {
 		int width = drawable.getWidth();
 		int height = drawable.getHeight();
 
-		ByteBuffer pixelsRGB = BufferUtil.newByteBuffer(width * height * 3);
+		ByteBuffer pixelsRGB = ByteBuffer.wrap( new byte[width * height * 3] );
 
-		GL gl = drawable.getGL();
+		GL2 gl = drawable.getGL().getGL2();
 
-		gl.glReadBuffer(GL.GL_BACK);
-		gl.glPixelStorei(GL.GL_PACK_ALIGNMENT, 1);
+		gl.glReadBuffer(GL2.GL_BACK);
+		gl.glPixelStorei(GL2.GL_PACK_ALIGNMENT, 1);
 
 		gl.glReadPixels(0, // GLint x
 				0, // GLint y
 				width, // GLsizei width
 				height, // GLsizei height
-				GL.GL_RGB, // GLenum format
-				GL.GL_UNSIGNED_BYTE, // GLenum type
+				GL2.GL_RGB, // GLenum format
+				GL2.GL_UNSIGNED_BYTE, // GLenum type
 				pixelsRGB); // GLvoid *pixels
 
 		int[] pixelInts = new int[width * height];

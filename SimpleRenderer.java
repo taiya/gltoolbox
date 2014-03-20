@@ -2,24 +2,24 @@ import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.util.Vector;
 
-import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCanvas;
 import javax.media.opengl.GLEventListener;
 import javax.swing.event.MouseInputAdapter;
 import javax.vecmath.Matrix4f;
 
 import javax.media.opengl.glu.GLU;
 
+interface GL extends GL2{}
 
 public abstract class SimpleRenderer extends MouseInputAdapter implements GLEventListener {
-	public SimpleRenderer(GLCanvas canvas) {
-		this.canvas = canvas;
+	public SimpleRenderer(GLAutoDrawable drawable) {
+		this.drawable = drawable;
 		model_matrix.setIdentity();
 	}
 
 	// Reference to GLCanvas we are rendering
-	protected GLCanvas canvas = null;
+	protected GLAutoDrawable drawable = null;
 	// GLU 
 	protected GLU glu = new GLU();
 	// Container of objects to be drawn
@@ -38,30 +38,26 @@ public abstract class SimpleRenderer extends MouseInputAdapter implements GLEven
 	// the conversion is done by get_model_matrix()
 	private float[] model_matrix_array = new float[16];
 	
-	// 
-	private float scale = 1;
-	private float[] translation = {.0f,.0f,.0f};
+	/** global scale transformation */
+	private double scale = 1;
+	private double[] translation = {.0f,.0f,.0f};
 	
-	public float getScale(){ return scale; }
-	public float[] getTranslation() { return translation; }
-	public void setScale(float scale){ this.scale = scale; }
-	public void setTranslation(float[] translation){ this.translation = translation; }
+	public double getScale(){ return scale; }
+	public double[] getTranslation() { return translation; }
+	public void setScale(double d){ this.scale = d; }
 	
-	
-	public void setOriginAt(double[] tr){ 
-		this.translation[0] = -(float) tr[0];
-		this.translation[1] = -(float) tr[1];
-		this.translation[2] = -(float) tr[2];
-	}
-
 	/**
 	 * Centers a scene so that the clicked point point p becomes the arcball center
 	 */
 	protected void setSceneCenter(Point p){
-		GL gl = canvas.getGL();	
+		GL2 gl = drawable.getGL().getGL2();	
 		double[] point_glwin_coords = Utils.getGLWindowCoordinates(p,gl);
 		double[] point_world_coords = Utils.windowToWorld(point_glwin_coords,gl);
-		if(point_world_coords!=null) this.setOriginAt(point_world_coords);
+		if(point_world_coords!=null){
+			this.translation[0] = -(float) point_world_coords[0];
+			this.translation[1] = -(float) point_world_coords[1];
+			this.translation[2] = -(float) point_world_coords[2];
+		}
 	}
 	
 	// @todo can this be simplified?
@@ -91,7 +87,7 @@ public abstract class SimpleRenderer extends MouseInputAdapter implements GLEven
 
 	// Initializes the OpenGL context (colors, lighting, etc)
 	public void init(GLAutoDrawable drawable) {
-		GL gl = drawable.getGL();
+		GL2 gl = drawable.getGL().getGL2();
 
 		// Common Initialization
 		gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // /< Background
@@ -121,7 +117,7 @@ public abstract class SimpleRenderer extends MouseInputAdapter implements GLEven
 		assert (height > 0);
 		double aspect_ratio = ((double) width) / ((double) height);
 
-		GL gl = drawable.getGL();
+		GL2 gl = drawable.getGL().getGL2();
 
 		// / Frustum [-1:1] mapped to full window
 		gl.glViewport(0, 0, width, height);
@@ -143,7 +139,7 @@ public abstract class SimpleRenderer extends MouseInputAdapter implements GLEven
 	// Display
 	public void display(GLAutoDrawable drawable) {
 		System.out.printf("SimpleRenderer::display()\n");
-		GL gl = drawable.getGL();
+		GL2 gl = drawable.getGL().getGL2();
 		gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 		gl.glMatrixMode(GL.GL_MODELVIEW);
 		gl.glLoadIdentity();
@@ -159,13 +155,18 @@ public abstract class SimpleRenderer extends MouseInputAdapter implements GLEven
 		gl.glFlush();
 	}
 
+	@Override
+	public void dispose(GLAutoDrawable drawable) {
+		// TODO Auto-generated method stub
+	}
+	
 	public void add_render_object(Object obj) {
 		/// Add the object to the render queue
 		objects.add(obj);
 		/// Save a pointer to context in the canvas
-		obj._canvas = canvas;
+		obj.drawable = drawable;
 		/// Demand a refresh of the GL display
-		canvas.display();
+		drawable.display();
 	}
 
 	public void displayChanged(GLAutoDrawable drawable, boolean a, boolean b) {
@@ -174,6 +175,6 @@ public abstract class SimpleRenderer extends MouseInputAdapter implements GLEven
 
 	/// Dragging the mouse refreshes the OpenGL canvas
 	public void mouseDragged(MouseEvent mouseEvent) {
-		canvas.display();
+		drawable.display();
 	}
 }
