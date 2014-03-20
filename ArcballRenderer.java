@@ -31,6 +31,10 @@ public class ArcballRenderer extends SimpleRenderer {
 		adjust_pan_speed(drawable.getWidth(), drawable.getHeight());
 	}
 	
+    public void resetTrackball(){
+        System.out.println("TODO: ArcballRenderer.resetTrackball()");
+    }
+    
 	/**
 	 * Make sure panning speed is ~constant TODO use it
 	 */

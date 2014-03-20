@@ -49,6 +49,10 @@ public class OpenGLCanvas extends GLCanvas {
 	public void add(Object object) {
 		rend.add_render_object(object);
 	}
+    
+    public void resetTrackball(){
+        rend.resetTrackball();
+    }
 
 	/** Standalone test entry point */
 	public static void main(String[] args) {

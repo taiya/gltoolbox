@@ -44,9 +44,8 @@ classdef View3
             this.jCanvas.add(ret);
         end
         
-        function hmenu_view_cb(this, src, eventdata) %#ok<INUSD>
-            disp('callback!');
-        end
+        %--- UI callbacks 
+        function hmenu_view_cb(this, src, eventdata), this.jCanvas.resetTrackball(); end %#ok<INUSD>
         
         %--- adds a simple cube to the drawer
         function ret = cube(this)
