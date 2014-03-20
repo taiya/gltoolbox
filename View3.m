@@ -1,15 +1,31 @@
 classdef View3
     properties
         jCanvas = [];
-        hCanvas = [];
+        container = [];
+        hfigure = [];
+        
+        %--- Menu
+        hmenu = [];
+        hmenu_view = [];
     end
     
     methods
         %--- Constructor
         function this = View3()
+            %--- Instantiate Java/Matlab resources
+            this.hfigure = figure();
             this.jCanvas = OpenGLCanvas();
-            [~, this.hCanvas] = javacomponent(this.jCanvas);
-            set(this.hCanvas, 'Units', 'normalized', 'Position', [0 0 1 1]);
+            %--- place the given Java component in the current figure
+            [~, this.container] = javacomponent(this.jCanvas,[],this.hfigure);
+            %--- make the java object occupy the full figure
+            set(this.container,'Units', 'normalized');
+            set(this.container,'Position', [0 0 1 1]); 
+            %--- delete the old menu
+            set(this.hfigure,'Toolbar','none')
+            set(this.hfigure,'Menubar','none');
+            %--- setup the menu
+            this.hmenu_view = uimenu(this.hfigure,'Label','View');
+            uimenu(this.hmenu_view,'Label','Reset Arcball','Callback',@this.hmenu_view_cb);
         end
         
         function ret = mesh(this, vertices, faces, normals)
@@ -28,7 +44,11 @@ classdef View3
             this.jCanvas.add(ret);
         end
         
-        %--- Example
+        function hmenu_view_cb(this, src, eventdata) %#ok<INUSD>
+            disp('callback!');
+        end
+        
+        %--- adds a simple cube to the drawer
         function ret = cube(this)
             ret = this.jCanvas.add(CubeRenderer());
         end
