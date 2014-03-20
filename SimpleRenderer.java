@@ -24,8 +24,8 @@ public abstract class SimpleRenderer extends MouseInputAdapter implements GLEven
 	protected GLU glu = new GLU();
 	// Container of objects to be drawn
 	protected Vector<Object> objects = new Vector<Object>();
-	// Light position
-	protected float[] light0_pos = { 0, 0, 100, 1 }; // /< light position
+	// Light position (w=0 implies *parallel* light source)
+	protected float[] light0_pos = { 0f, 0f, 1f, 0f }; // /< light position
 	// Ambient light
 	protected float[] light0_amb = { 0.2f, 0.2f, 0.2f, 1f };
 	// Diffuse color
