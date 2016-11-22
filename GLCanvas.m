@@ -81,6 +81,16 @@ classdef GLCanvas
             classpath = [classpath pathsep fullfile(basepath,'gluegen-rt.jar')];
             classpath = [classpath pathsep fullfile(basepath,'vecmath.jar')];
             
+            [~, javac_version] = system('javac -version');
+            javam_version = version('-java');
+            jc = javac_version(7:9);
+            jm = javam_version(6:8);
+            if ~all(jc==jm)
+                fprintf('matlab requires: %s\n', javam_version);
+                fprintf('system provides: %s\n', javac_version);
+                error('java version mismatch');
+            end
+            
             %--- Compile
             src = [' ' localpath filesep 'JGLCanvas.java'];
             cmd = ['javac -cp "' classpath '"' src];
